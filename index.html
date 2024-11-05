@@ -230,7 +230,6 @@
 
             // Reiniciar a barra de progresso e o contador
             resetProgressBar();
-            startCountdown();
 
             gameInterval = setInterval(() => {
                 multiplier += Math.random() * 0.2;
@@ -251,7 +250,6 @@
                     document.getElementById("multiplierBox").style.display = 'none';
                     gameStarted = false;
                     clearInterval(countdownInterval); // Para o contador quando o jogo acaba
-                    startCountdown();
                 }
             }, 100);
         }
@@ -297,7 +295,7 @@
         }
 
         window.onload = function() {
-            resetProgressBar();
+            resetProgressBar(); // Inicia o contador quando a página é carregada
         };
     </script>
 </body>
