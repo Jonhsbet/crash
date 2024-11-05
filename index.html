@@ -61,7 +61,7 @@
         }
 
         .controls button {
-            background-color: #4CAF50; /* Verde por padrão */
+            background-color: #247BA0; /* Cor alterada para #247BA0 */
             color: #fff;
             cursor: pointer;
         }
@@ -87,7 +87,7 @@
         }
 
         .multiplier-box {
-            background-color: #247BA0;
+            background-color: #247BA0; /* Cor alterada para #247BA0 */
             color: #fff;
             font-size: 1.5rem;
             padding: 10px 20px;
@@ -108,7 +108,7 @@
 
         .progress-bar {
             height: 100%;
-            background-color: #4CAF50;
+            background-color: #247BA0; /* Cor alterada para #247BA0 */
             border-radius: 10px;
             width: 0;
             transition: width 0.1s linear;
@@ -180,8 +180,8 @@
                 datasets: [{
                     label: 'Multiplicador',
                     data: [],
-                    borderColor: '#00ff00',
-                    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                    borderColor: '#247BA0', // Cor alterada para #247BA0
+                    backgroundColor: 'rgba(36, 123, 160, 0.1)', // Cor de fundo alterada
                     fill: true,
                     tension: 0.1
                 }]
@@ -224,13 +224,14 @@
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
+                startGame(); // Inicia o jogo após fazer a aposta
             } 
         }
 
         function startGame() {
             gameStarted = true;
             multiplier = 1;
-            crashValue = generateCrashValue(); // Gera o valor de crash de acordo com as faixas
+            crashValue = generateCrashValue(); // Gera o valor de crash
 
             document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
             document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`;
@@ -261,62 +262,43 @@
                     document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
                     document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
                     gameStarted = false; // Reseta o estado do jogo
-                    startCountdown(); // Reinicia a contagem após o crash
+                    startCountdown(); // Reinicia a contagem regressiva
                 }
-            }, 100); // Atualiza o multiplicador a cada 100ms
+
+            }, 100); // Atualiza a cada 100ms
         }
 
-        function generateCrashValue() {
-            const random = Math.random();
-            if (random < 0.5) {
-                return Math.random() * (4 - 1) + 1; // 50% de 1x a 4x
-            } else if (random < 0.8) {
-                return Math.random() * (8 - 4) + 4; // 30% de 4x a 8x
-            } else if (random < 0.9) {
-                return Math.random() * (12 - 9) + 9; // 10% de 9x a 12x
-            } else if (random < 0.95) {
-                return Math.random() * (15 - 12) + 12; // 5% de 12x a 15x
-            } else {
-                return Math.random() * (150 - 15) + 15; // 5% de 15x a 150x
-            }
+        function endGame() {
+            gameStarted = false;
+            clearInterval(gameInterval);
+            document.getElementById("placeBet").disabled = false;
+            document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe de desabilitado
+            document.getElementById("cashOut").disabled = true;
+
+            // Exibe o resultado final
+            const resultMessage = cashedOut ? `Você retirou R$${(betAmount * multiplier).toFixed(2)} (Multiplicador: ${multiplier.toFixed(2)}x)` : `Você perdeu sua aposta de R$${betAmount.toFixed(2)}!`;
+            document.getElementById("result").textContent = resultMessage;
+
+            // Reseta o multiplicador
+            document.getElementById("multiplierBox").style.display = 'none'; // Oculta o multiplicador
+            document.getElementById("progressBar").style.width = '0%'; // Reseta a barra de progresso
+            document.getElementById("timerLabel").textContent = ""; // Limpa o temporizador
+            multiplier = 1; // Reseta o multiplicador
         }
-
-        // Função para iniciar a contagem do tempo de 5 segundos
-function startCountdown() {
-    let countdown = 6; // 5 segundos
-    const progressBar = document.getElementById("progressBar");
-    const timerLabel = document.getElementById("timerLabel");
-    progressBar.style.width = '100%'; // Reseta a barra de progresso
-
-    const countdownInterval = setInterval(() => {
-        countdown--;
-        timerLabel.textContent = countdown; // Atualiza o timer
-        progressBar.style.width = `${(countdown / 6) * 100}%`; // Atualiza a largura da barra de progresso
-
-        if (countdown <= 0) {
-            clearInterval(countdownInterval);
-            startGame(); // Inicia o jogo após 5 segundos
-        }
-    }, 1000); // Atualiza a cada segundo
-}
-
 
         function cashOut() {
             if (gameStarted && !cashedOut) {
                 cashedOut = true;
-                balance += betAmount * multiplier; // Calcula o saldo após retirada
+                balance += betAmount * multiplier; // Adiciona ao saldo
                 updateBalanceDisplay();
-                document.getElementById("result").textContent = `Você retirou com ${multiplier.toFixed(2)}x!`;
-                document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
-                document.getElementById("placeBet").disabled = false; // Habilita novas apostas
-                document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
+                endGame(); // Encerra o jogo após o cash out
             }
         }
 
-        // Inicia a contagem assim que a página carrega
-        window.onload = function() {
-            startCountdown();
-        };
+        function generateCrashValue() {
+            // Gera um valor de crash aleatório entre 1.5 e 5
+            return (Math.random() * 3.5 + 1.5).toFixed(2);
+        }
     </script>
 </body>
 </html>
