@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo rash - JonhsBet</title>
+    <title>Jogo Crash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -214,23 +214,6 @@
             document.getElementById("balance").textContent = `Saldo: R$${balance.toFixed(2)}`;
         }
 
-        function placeBet() {
-            const inputAmount = parseFloat(document.getElementById("betAmount").value);
-            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
-
-            if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
-                betAmount = inputAmount;
-                balance -= betAmount;
-                cashedOut = false;
-                document.getElementById("placeBet").disabled = true;
-                document.getElementById("placeBet").classList.add('disabled');
-                document.getElementById("cashOut").disabled = false;
-                document.getElementById("result").textContent = "";
-                updateBalanceDisplay();
-                startGame();
-            } 
-        }
-
         function startGame() {
             gameStarted = true;
             multiplier = 1;
@@ -274,6 +257,21 @@
                     updateBalanceDisplay();
                 }
             }, 50);
+        }
+
+        function placeBet() {
+            const inputAmount = parseFloat(document.getElementById("betAmount").value);
+            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
+
+            if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
+                betAmount = inputAmount;
+                balance -= betAmount;
+                updateBalanceDisplay();
+                cashedOut = false;
+                startGame();
+            } else {
+                alert("Valor inválido para a aposta ou saldo insuficiente!");
+            }
         }
 
         function cashOut() {
