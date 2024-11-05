@@ -114,6 +114,15 @@
             transition: width 0.1s linear;
         }
 
+        .timer-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 1rem;
+            top: -25px; /* Posiciona acima da barra */
+        }
+
         canvas {
             width: 100%;
             height: 100%;
@@ -145,6 +154,7 @@
         <div class="game-area">
             <div id="multiplierBox" class="multiplier-box">1.00x</div>
             <div class="progress-container">
+                <div class="timer-label" id="timerLabel">10</div>
                 <div id="progressBar" class="progress-bar"></div>
             </div>
             <canvas id="crashChart"></canvas>
@@ -204,6 +214,7 @@
             const inputAmount = parseFloat(document.getElementById("betAmount").value);
             autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
 
+            // Apenas processa a aposta se for válida e se o jogo não tiver começado
             if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
                 betAmount = inputAmount;
                 balance -= betAmount;
@@ -213,26 +224,7 @@
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
-                startCountdown();
-            } else {
-                alert("Insira um valor de aposta válido dentro do saldo disponível.");
-            }
-        }
-
-        function startCountdown() {
-            let countdownTime = 10; // Contagem regressiva de 10 segundos
-            const progressBar = document.getElementById("progressBar");
-            progressBar.style.width = '0%'; // Reseta a largura da barra
-
-            const countdownInterval = setInterval(() => {
-                countdownTime--;
-                progressBar.style.width = ((10 - countdownTime) * 10) + '%'; // Atualiza a barra de progresso
-
-                if (countdownTime <= 0) {
-                    clearInterval(countdownInterval);
-                    startGame(); // Inicia o jogo após a contagem
-                }
-            }, 1000);
+            } 
         }
 
         function startGame() {
@@ -272,6 +264,25 @@
             }, 100); // Atualiza o multiplicador a cada 100ms
         }
 
+        // Função para iniciar a contagem do tempo de 10 segundos
+        function startCountdown() {
+            let countdown = 10; // 10 segundos
+            const progressBar = document.getElementById("progressBar");
+            const timerLabel = document.getElementById("timerLabel");
+            progressBar.style.width = '100%'; // Reseta a barra de progresso
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                timerLabel.textContent = countdown; // Atualiza o timer
+                progressBar.style.width = `${(countdown / 10) * 100}%`; // Atualiza a largura da barra de progresso
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame(); // Inicia o jogo após 10 segundos
+                }
+            }, 1000); // Atualiza a cada segundo
+        }
+
         function cashOut() {
             if (gameStarted && !cashedOut) {
                 cashedOut = true;
@@ -281,9 +292,13 @@
                 document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
                 document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                 document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
-                // Não esconde o multiplicador para continuar aumentando
             }
         }
+
+        // Inicia a contagem assim que a página carrega
+        window.onload = function() {
+            startCountdown();
+        };
     </script>
 </body>
 </html>
