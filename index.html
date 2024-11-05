@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Crash - JonhsBet</title>
+    <title>Jogo rash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -167,7 +167,7 @@
         let betAmount = 0;
         let cashedOut = false;
         let balance = 1000; // Saldo inicial
-        let crashValue = Math.random() * 150 + 1; // Valor aleatório de crash entre 1 e 150x para aumentar a dificuldade
+        let crashValue; // Valor de crash
         let autoWithdraw = null; // Valor de retirada automática
         let gameStarted = false;
 
@@ -230,7 +230,8 @@
         function startGame() {
             gameStarted = true;
             multiplier = 1;
-            crashValue = Math.random() * 150 + 1; // Define novo valor de crash aleatório
+            crashValue = generateCrashValue(); // Gera o valor de crash de acordo com as faixas
+
             document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
             document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`;
 
@@ -263,6 +264,19 @@
                     startCountdown(); // Reinicia a contagem após o crash
                 }
             }, 100); // Atualiza o multiplicador a cada 100ms
+        }
+
+        function generateCrashValue() {
+            const random = Math.random();
+            if (random < 0.7) {
+                return Math.random() * (8 - 1) + 1; // 70% de 1x a 8x
+            } else if (random < 0.9) {
+                return Math.random() * (12 - 9) + 9; // 20% de 9x a 12x
+            } else if (random < 0.95) {
+                return Math.random() * (15 - 12) + 12; // 5% de 12x a 15x
+            } else {
+                return Math.random() * (150 - 15) + 15; // 5% de 15x a 150x
+            }
         }
 
         // Função para iniciar a contagem do tempo de 10 segundos
