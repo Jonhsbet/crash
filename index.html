@@ -209,12 +209,12 @@
                 balance -= betAmount;
                 cashedOut = false;
                 gameStarted = true;
-                document.getElementById("placeBet").disabled = true;
+                document.getElementById("placeBet").disabled = true; // Desabilita o botão de aposta
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
                 document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
-                if (!gameInterval) startGame();
+                startGame(); // Inicia o jogo
             } else {
                 alert("Insira um valor de aposta válido dentro do saldo disponível.");
             }
@@ -268,11 +268,11 @@
                     setTimeout(() => {
                         if (!gameStarted) {
                             document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador ao reiniciar
-                            startGame(); // Reinicia o jogo
+                            startGame();
                         }
                     }, 10000);
                 }
-            }, 100); // Atualiza a cada 100ms
+            }, 100);
         }
 
         function cashOut() {
