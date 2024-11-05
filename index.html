@@ -124,62 +124,18 @@
             transform: translateY(-50%); /* Ajusta a posição para o centro */
         }
 
+        canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            border-radius: 8px;
+        }
+
         #result {
             margin-top: 10px;
             font-size: 1.2rem;
             color: #FF4500;
             text-align: center;
-        }
-
-        .crash-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .network {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .network__dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: green;
-            margin-right: 5px;
-        }
-
-        .network__status {
-            color: #fff;
-            font-size: 0.9rem;
-        }
-
-        .crash-previous {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .crash-previous span {
-            margin: 5px;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-
-        .bad {
-            background-color: rgba(255, 0, 0, 0.5);
-        }
-
-        .good {
-            background-color: rgba(72, 255, 79, 0.5);
-        }
-
-        #crash-canvas {
-            width: 100%;
-            height: auto;
         }
     </style>
 </head>
@@ -195,50 +151,14 @@
             <p id="result"></p>
         </div>
 
-        <!-- Área do jogo -->
+        <!-- Área do gráfico e valor do multiplicador -->
         <div class="game-area">
-            <div class="crash-wrapper">
-                <div id="crash-canvas" class="game">
-                    <canvas id="crash-main-canvas" width="857" height="160"></canvas>
-                    <div class="network">
-                        <div class="network__dot">
-                            <div class="network__dot-pulse network__dot__online"></div>
-                        </div>
-                        <div class="network__status">
-                            <span class="network__status__online">Online</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="crash-recent">
-                    <div class="label">Anterior</div>
-                    <div class="crash-previous">
-                        <div class="fairness-modal-link">
-                            <img alt="" src="/static/media/round-history.945cfcf5.svg">
-                        </div>
-                        <span class="bad">1,74X</span>
-                        <span class="bad">1,11X</span>
-                        <span class="bad">1,94X</span>
-                        <span class="bad">1,21X</span>
-                        <span class="bad">1,94X</span>
-                        <span class="good">9,50X</span>
-                        <span class="bad">1,64X</span>
-                        <span class="good">3,30X</span>
-                        <span class="bad">1,47X</span>
-                        <span class="good">9,53X</span>
-                        <span class="bad">1,23X</span>
-                        <span class="good">2,11X</span>
-                        <span class="bad">1,93X</span>
-                        <span class="bad">1,80X</span>
-                        <span class="bad">1,19X</span>
-                        <span class="bad">1,44X</span>
-                    </div>
-                </div>
-            </div>
             <div id="multiplierBox" class="multiplier-box">1.00x</div>
             <div class="progress-container">
                 <div class="timer-label" id="timerLabel">10</div>
                 <div id="progressBar" class="progress-bar"></div>
             </div>
+            <canvas id="crashChart"></canvas>
         </div>
     </div>
 
@@ -253,7 +173,7 @@
         let gameStarted = false;
 
         // Configuração do gráfico
-        const ctx = document.getElementById('crash-main-canvas').getContext('2d');
+        const ctx = document.getElementById('crashChart').getContext('2d');
         const crashChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -292,50 +212,63 @@
         }
 
         function placeBet() {
-            betAmount = parseFloat(document.getElementById("betAmount").value);
-            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value);
-            if (isNaN(betAmount) || betAmount <= 0 || betAmount > balance) {
-                alert("Valor de aposta inválido.");
-                return;
-            }
-            balance -= betAmount;
-            updateBalanceDisplay();
-            cashedOut = false; // Reseta o estado de cash out
-            document.getElementById("placeBet").disabled = true; // Desabilita o botão de aposta
-            document.getElementById("placeBet").classList.add('disabled'); // Adiciona a classe que desabilita
-            startGame();
+            const inputAmount = parseFloat(document.getElementById("betAmount").value);
+            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
+
+            // Apenas processa a aposta se for válida e se o jogo não tiver começado
+            if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
+                betAmount = inputAmount;
+                balance -= betAmount;
+                cashedOut = false;
+                document.getElementById("placeBet").disabled = true;
+                document.getElementById("placeBet").classList.add('disabled'); // Adiciona classe para mudar a cor
+                document.getElementById("cashOut").disabled = false;
+                document.getElementById("result").textContent = "";
+                updateBalanceDisplay();
+                startGame(); // Inicia o jogo após fazer a aposta
+            } 
         }
 
         function startGame() {
+            gameStarted = true;
             multiplier = 1;
-            crashValue = getCrashValue();
+            crashValue = generateCrashValue(); // Gera o valor de crash de acordo com as faixas
+
             document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
-            document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`; // Exibe o multiplicador
-            crashChart.data.labels = []; // Reseta as labels
-            crashChart.data.datasets[0].data = []; // Reseta os dados
+            document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`;
+
+            // Limpa os dados do gráfico anterior
+            crashChart.data.labels = [];
+            crashChart.data.datasets[0].data = [];
             crashChart.update();
-            gameStarted = true; // Marca o jogo como iniciado
+
             gameInterval = setInterval(() => {
-                if (multiplier < crashValue) {
-                    multiplier += 0.1; // Aumenta o multiplicador
-                    document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`; // Atualiza o multiplicador
-                    crashChart.data.labels.push(""); // Adiciona uma nova label
-                    crashChart.data.datasets[0].data.push(multiplier); // Adiciona o valor do multiplicador ao gráfico
-                    crashChart.update(); // Atualiza o gráfico
-                    document.getElementById("progressBar").style.width = `${(multiplier / crashValue) * 100}%`; // Atualiza a barra de progresso
-                } else {
+                multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória
+                crashChart.data.labels.push((crashChart.data.labels.length + 1).toString());
+                crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
+                crashChart.update();
+
+                // Atualiza o valor do multiplicador na caixa
+                document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x 🚀`;
+
+                // Verifica retirada automática
+                if (autoWithdraw && multiplier >= autoWithdraw && !cashedOut) {
+                    cashOut();
+                }
+
+                if (multiplier >= crashValue) {
                     clearInterval(gameInterval);
-                    document.getElementById("result").textContent = "Crash! Você perdeu!";
-                    document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
+                    document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
                     document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                     document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
+                    document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
                     gameStarted = false; // Reseta o estado do jogo
+                    startCountdown(); // Reinicia a contagem após o crash
                 }
-            }, 100); // Aumenta o multiplicador a cada 100ms
-            startCountdown(); // Inicia a contagem regressiva
+            }, 100); // Atualiza o multiplicador a cada 100ms
         }
 
-        function getCrashValue() {
+        function generateCrashValue() {
             const random = Math.random();
             if (random < 0.5) {
                 return Math.random() * (4 - 1) + 1; // Valor entre 1 e 4
