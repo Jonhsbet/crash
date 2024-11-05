@@ -41,7 +41,6 @@
         let crashValue; // Valor de crash
         let autoWithdraw = null; // Valor de retirada automática
         let gameStarted = false;
-        let countdownInterval; // Variável para o cronômetro de contagem regressiva
         let countdownTime = 10; // Tempo inicial para o cronômetro
 
         const ctx = document.getElementById('crashChart').getContext('2d');
@@ -103,12 +102,13 @@
             multiplier = 1;
             crashValue = generateCrashValue();
             countdownTime = 10;
-            updateCountdown();
 
-            // Inicia o cronômetro de contagem regressiva
-            countdownInterval = setInterval(() => {
-                countdownTime -= 1;
+            // Atualiza o cronômetro a cada segundo
+            updateCountdown();
+            const countdownInterval = setInterval(() => {
+                countdownTime--;
                 updateCountdown();
+
                 if (countdownTime <= 0) {
                     clearInterval(countdownInterval);
                 }
