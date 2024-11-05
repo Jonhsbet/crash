@@ -283,7 +283,7 @@
 
         // Função para iniciar a contagem do tempo de 5 segundos
 function startCountdown() {
-    let countdown = 5; // 5 segundos
+    let countdown = 6; // 5 segundos
     const progressBar = document.getElementById("progressBar");
     const timerLabel = document.getElementById("timerLabel");
     progressBar.style.width = '100%'; // Reseta a barra de progresso
@@ -291,7 +291,7 @@ function startCountdown() {
     const countdownInterval = setInterval(() => {
         countdown--;
         timerLabel.textContent = countdown; // Atualiza o timer
-        progressBar.style.width = `${(countdown / 5) * 100}%`; // Atualiza a largura da barra de progresso
+        progressBar.style.width = `${(countdown / 6) * 100}%`; // Atualiza a largura da barra de progresso
 
         if (countdown <= 0) {
             clearInterval(countdownInterval);
