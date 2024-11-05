@@ -55,20 +55,19 @@
             font-size: 2rem;
             margin: 20px 0;
         }
-        .chart-container {
+        .bar-container {
             position: relative;
-            height: 200px;
+            width: 100%;
+            height: 30px;
             background-color: #34495e;
             border-radius: 5px;
             overflow: hidden;
         }
-        #line {
-            height: 2px;
+        #progress-bar {
+            height: 100%;
             background-color: #e74c3c;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            transform-origin: left;
+            width: 0%;
+            transition: width 0.1s linear;
         }
     </style>
 </head>
@@ -86,8 +85,8 @@
 
         <div id="multiplier">1.00x</div>
         
-        <div class="chart-container">
-            <div id="line"></div>
+        <div class="bar-container">
+            <div id="progress-bar"></div>
         </div>
 
         <div id="message"></div>
@@ -125,10 +124,8 @@
         }
 
         function animateMultiplier() {
-            const line = document.getElementById("line");
-            line.style.width = "0";
-            line.style.transition = "none";
-
+            const progressBar = document.getElementById("progress-bar");
+            progressBar.style.width = "0%";
             multiplierInterval = setInterval(() => {
                 if (crashed) {
                     clearInterval(multiplierInterval);
@@ -141,9 +138,9 @@
                     multiplier += 0.01;
                     document.getElementById("multiplier").textContent = `${multiplier.toFixed(2)}x`;
                     
-                    // Atualiza a largura da linha
-                    line.style.width = `${multiplier * 50}px`;
-                    line.style.transition = "width 0.05s linear";
+                    // Atualiza a largura da barra de progresso
+                    let progressPercentage = Math.min(multiplier * 10, 100); // Limita o máximo a 100%
+                    progressBar.style.width = `${progressPercentage}%`;
 
                     // Simula a chance de crash aleatório
                     if (Math.random() < 0.01 * multiplier) {
