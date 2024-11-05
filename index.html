@@ -125,8 +125,9 @@
         let betAmount = 0;
         let cashedOut = false;
         let balance = 1000; // Saldo inicial
-        let crashValue = Math.random() * 200 + 1; // Valor aleatório de crash entre 1 e 200x
+        let crashValue = Math.random() * 150 + 1; // Valor aleatório de crash entre 1 e 150x para aumentar a dificuldade
         let autoWithdraw = null; // Valor de retirada automática
+        let gameStarted = false;
 
         // Configuração do gráfico
         const ctx = document.getElementById('crashChart').getContext('2d');
@@ -192,11 +193,12 @@
                 betAmount = inputAmount;
                 balance -= betAmount;
                 cashedOut = false;
+                gameStarted = true;
                 document.getElementById("placeBet").disabled = true;
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
-                startGame();
+                if (!gameInterval) startGame();
             } else {
                 alert("Insira um valor de aposta válido dentro do saldo disponível.");
             }
@@ -205,7 +207,7 @@
         function startGame() {
             let time = 0;
             multiplier = 1;
-            crashValue = Math.random() * 200 + 1; // Define novo valor de crash aleatório
+            crashValue = Math.random() * 150 + 1; // Define novo valor de crash aleatório para aumentar a dificuldade
 
             // Limpa os dados do gráfico anterior
             crashChart.data.labels = [];
@@ -214,7 +216,7 @@
 
             gameInterval = setInterval(() => {
                 time += 0.1;
-                multiplier += 0.1;
+                multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória e mais lenta para aumentar a dificuldade
                 crashChart.data.labels.push(time.toFixed(1));
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
                 crashChart.update();
@@ -230,16 +232,17 @@
                     document.getElementById("placeBet").disabled = false;
                     document.getElementById("cashOut").disabled = true;
 
-                    if (!cashedOut) {
+                    if (!cashedOut && gameStarted) {
                         balance -= betAmount;
                         updateBalanceDisplay();
                     }
+                    
+                    gameStarted = false; // Reinicia o jogo
                 }
             }, 100);
         }
 
         function cashOut() {
-            clearInterval(gameInterval);
             cashedOut = true;
             const winAmount = betAmount * multiplier;
             balance += winAmount;
@@ -248,6 +251,13 @@
             document.getElementById("placeBet").disabled = false;
             document.getElementById("cashOut").disabled = true;
         }
+
+        // Inicia automaticamente o jogo após 10 segundos, caso não haja aposta
+        setTimeout(() => {
+            if (!gameStarted) {
+                startGame();
+            }
+        }, 10000);
     </script>
 </body>
 </html>
