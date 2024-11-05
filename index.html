@@ -3,220 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Double</title>
+    <title>Jogo Crash</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #1e272e;
-            color: #ffffff;
-            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            margin: 0;
+            background-color: #222;
+            color: #fff;
         }
+
+        h1 {
+            color: #4CAF50;
+        }
+
         .game-container {
-            width: 80%;
-            max-width: 500px;
-            background-color: #2f3640;
-            padding: 20px;
-            border-radius: 10px;
+            text-align: center;
+            margin: 20px;
         }
-        #balance {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+
+        #multiplier {
+            font-size: 2rem;
+            margin: 20px 0;
+            color: #00ff00;
         }
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .bet-options {
-            display: flex;
-            gap: 10px;
+
+        .input-group {
             margin: 10px 0;
         }
-        .bet-option {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        .bet-option.green { background-color: #27ae60; }
-        .bet-option.black { background-color: #2c3e50; }
-        .bet-option.white { background-color: #ffffff; color: #2c3e50; }
-        .selected { border: 3px solid yellow; }
-        .result-bar {
-            width: 100%;
-            height: 30px;
-            background-color: #34495e;
-            border-radius: 5px;
-            margin: 20px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        #rolling-bar {
-            width: 20%;
-            height: 100%;
-            background-color: #3498db;
-            position: absolute;
-            animation: rolling 2s ease-in-out infinite;
-        }
-        @keyframes rolling {
-            0% { left: 0%; }
-            100% { left: 100%; }
-        }
-        button {
-            font-size: 1rem;
+
+        .btn {
             padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #27ae60;
-            color: white;
+            font-size: 1rem;
             cursor: pointer;
+            border: none;
+            color: white;
+            background-color: #4CAF50;
+            margin: 5px;
         }
-        button:disabled {
-            background-color: #7f8c8d;
+
+        .btn:disabled {
+            background-color: #555;
             cursor: not-allowed;
-        }
-        #message {
-            margin-top: 20px;
-            font-size: 1.2rem;
-        }
-        #timer {
-            font-size: 1.2rem;
-            color: #e74c3c;
-            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
+    <h1>Jogo Crash</h1>
     <div class="game-container">
-        <h1>Jogo Double</h1>
-        <div id="balance">Saldo: $100</div>
-        
-        <div id="timer">Tempo restante: 20s</div>
-        
-        <div class="controls">
-            <label for="bet">Aposta: $</label>
-            <input type="number" id="bet" min="1" value="10">
-            
-            <div class="bet-options">
-                <div class="bet-option green" onclick="selectColor('green')">x2</div>
-                <div class="bet-option black" onclick="selectColor('black')">x2</div>
-                <div class="bet-option white" onclick="selectColor('white')">x14</div>
-            </div>
-            
-            <button id="startBtn" onclick="startGame()">Começar o jogo</button>
+        <div class="input-group">
+            <label for="betAmount">Aposta: R$</label>
+            <input type="number" id="betAmount" placeholder="Valor da aposta" min="1">
         </div>
+        <button class="btn" id="placeBet" onclick="placeBet()">Fazer Aposta</button>
+        <button class="btn" id="cashOut" onclick="cashOut()" disabled>Retirar</button>
 
-        <div class="result-bar">
-            <div id="rolling-bar"></div>
-        </div>
-
-        <div id="message"></div>
+        <p id="countdown">Tempo para iniciar: 20s</p>
+        <p id="multiplier">1.00x</p>
+        <p id="result"></p>
     </div>
 
     <script>
-        let balance = 100;
+        let countdown = 20;
+        let multiplier = 1;
+        let gameInterval;
+        let countdownInterval;
+        let gameStarted = false;
+        let betPlaced = false;
         let betAmount = 0;
-        let selectedColor = null;
-        let countdown = 20;  // 20-second timer
-        let timer;
+        let cashedOut = false;
 
-        // Initialize countdown timer
         function startCountdown() {
-            timer = setInterval(() => {
-                if (countdown > 0) {
-                    countdown--;
-                    document.getElementById("timer").textContent = `Tempo restante: ${countdown}s`;
-                } else {
-                    clearInterval(timer);
-                    startGame(true);  // Auto-start without bet
+            countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById("countdown").textContent = `Tempo para iniciar: ${countdown}s`;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame();
                 }
             }, 1000);
         }
 
-        // Update balance
-        function updateBalance(amount) {
-            balance += amount;
-            document.getElementById("balance").textContent = `Saldo: $${balance}`;
+        function placeBet() {
+            const inputAmount = document.getElementById("betAmount").value;
+            if (inputAmount && inputAmount > 0) {
+                betAmount = parseFloat(inputAmount);
+                betPlaced = true;
+                document.getElementById("placeBet").disabled = true;
+                document.getElementById("cashOut").disabled = false;
+                document.getElementById("result").textContent = "";
+            } else {
+                alert("Por favor, insira um valor válido para a aposta.");
+            }
         }
 
-        // Select color
-        function selectColor(color) {
-            selectedColor = color;
-            document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`.bet-option.${color}`).classList.add('selected');
-        }
-
-        // Start game
-        function startGame(autoStart = false) {
-            if (!autoStart) {
-                clearInterval(timer);  // Stop countdown if manually started
-            }
-            
-            betAmount = parseInt(document.getElementById("bet").value);
-            if (!selectedColor) {
-                document.getElementById("message").textContent = "Por favor, selecione uma cor!";
-                return;
-            }
-            if (!autoStart && betAmount > balance) {
-                document.getElementById("message").textContent = "Saldo insuficiente!";
+        function startGame() {
+            if (!betPlaced) {
+                document.getElementById("result").textContent = "Jogo começou, mas você não apostou.";
                 return;
             }
 
-            if (!autoStart) {
-                updateBalance(-betAmount);  // Deduct balance only for manual starts
-            }
-            
-            document.getElementById("message").textContent = "Girando...";
-            document.getElementById("startBtn").disabled = true;
+            gameStarted = true;
+            cashedOut = false;
+            document.getElementById("countdown").textContent = "Jogo em andamento...";
+            multiplier = 1;
 
-            setTimeout(() => {
-                const result = spinWheel();
-                const multiplier = (result === selectedColor && !autoStart) ? (result === 'white' ? 14 : 2) : 0;
-                const winnings = betAmount * multiplier;
-                
-                if (multiplier > 0) {
-                    updateBalance(winnings);
-                    document.getElementById("message").textContent = `Você ganhou! Resultado: ${result.toUpperCase()} (+$${winnings})`;
-                } else {
-                    document.getElementById("message").textContent = autoStart ? "Jogo automático sem aposta." : `Você perdeu! Resultado: ${result.toUpperCase()}`;
+            gameInterval = setInterval(() => {
+                multiplier += 0.1;  // Aumenta o multiplicador mais devagar para simular o crescimento até 200x
+                document.getElementById("multiplier").textContent = `${multiplier.toFixed(2)}x`;
+
+                // Simulação de "crash" aleatório que se torna menos frequente com o aumento do multiplicador
+                if (Math.random() < 0.001 * multiplier || multiplier >= 200) {
+                    endGame();
                 }
-
-                document.getElementById("startBtn").disabled = false;
-                resetGame();  // Reset timer and selections
-            }, 2000);
+            }, 100);
         }
 
-        // Spin wheel logic
-        function spinWheel() {
-            const colors = ['green', 'black', 'white'];
-            const randomIndex = Math.floor(Math.random() * 15);
-            return randomIndex === 14 ? 'white' : colors[randomIndex % 2];
+        function cashOut() {
+            if (gameStarted && !cashedOut) {
+                cashedOut = true;
+                clearInterval(gameInterval);
+                const winnings = (betAmount * multiplier).toFixed(2);
+                document.getElementById("result").textContent = `Você retirou e ganhou R$${winnings}!`;
+                resetGame();
+            }
         }
 
-        // Reset game state for new round
+        function endGame() {
+            clearInterval(gameInterval);
+            document.getElementById("result").textContent = cashedOut
+                ? ""
+                : `O jogo travou em ${multiplier.toFixed(2)}x! Você perdeu sua aposta.`;
+            resetGame();
+        }
+
         function resetGame() {
+            document.getElementById("placeBet").disabled = false;
+            document.getElementById("cashOut").disabled = true;
+            betPlaced = false;
+            gameStarted = false;
             countdown = 20;
-            selectedColor = null;
-            document.getElementById("timer").textContent = `Tempo restante: 20s`;
-            document.getElementById("message").textContent = "";
-            document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById("countdown").textContent = `Tempo para iniciar: ${countdown}s`;
             startCountdown();
         }
 
-        // Start countdown on load
-        window.onload = startCountdown;
+        startCountdown();
     </script>
 </body>
 </html>
