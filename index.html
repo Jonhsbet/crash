@@ -170,6 +170,8 @@
         let crashValue; // Valor de crash
         let autoWithdraw = null; // Valor de retirada automática
         let gameStarted = false;
+        let countdown = 5; // Contagem regressiva de 5 segundos
+        let countdownInterval;
 
         // Configuração do gráfico
         const ctx = document.getElementById('crashChart').getContext('2d');
@@ -260,12 +262,25 @@
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
                     document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                     document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
-                    document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
-                    gameStarted = false; // Reseta o estado do jogo
-                    startCountdown(); // Reinicia a contagem regressiva
+                    document.getElementById("cashOut").disabled = true;
                 }
 
+                // Atualiza a barra de progresso
+                let progressBarWidth = Math.min((multiplier / crashValue) * 100, 100);
+                document.getElementById("progressBar").style.width = progressBarWidth + "%";
             }, 100); // Atualiza a cada 100ms
+
+            // Inicia a contagem regressiva
+            countdown = 5;
+            document.getElementById("timerLabel").textContent = countdown;
+            countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById("timerLabel").textContent = countdown;
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000); // Atualiza a cada 1 segundo
         }
 
         function endGame() {
