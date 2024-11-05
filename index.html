@@ -236,7 +236,7 @@
                 time += 0.1;
                 document.getElementById("progressBar").style.width = `${(time / 10) * 100}%`; // Atualiza a largura da barra
 
-                multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória
+                multiplier += Math.random() * 0.4; // Multiplicador aumenta de forma aleatória
                 crashChart.data.labels.push(time.toFixed(1));
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
                 crashChart.update();
