@@ -158,8 +158,6 @@
             <p id="result"></p>
         </div>
 
-        <!-- Resto do código permanece o mesmo -->
-        <!-- Área do gráfico e valor do multiplicador -->
         <div class="game-area">
             <div id="multiplierBox" class="multiplier-box">1.00x</div>
             <div class="progress-container">
@@ -171,7 +169,144 @@
     </div>
 
     <script>
-        // JavaScript permanece o mesmo
+        let multiplier = 1;
+        let gameInterval;
+        let betAmount = 0;
+        let cashedOut = false;
+        let balance = 1000;
+        let crashValue;
+        let autoWithdraw = null;
+        let gameStarted = false;
+
+        const ctx = document.getElementById('crashChart').getContext('2d');
+        const crashChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Multiplicador',
+                    data: [],
+                    borderColor: '#00ff00',
+                    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: { legend: { display: false } },
+                elements: {
+                    point: { radius: 5, backgroundColor: 'rgba(255, 255, 255, 0)', borderWidth: 0 }
+                }
+            }
+        });
+
+        function updateBalanceDisplay() {
+            document.getElementById("balance").textContent = `Saldo: R$${balance.toFixed(2)}`;
+        }
+
+        function placeBet() {
+            const inputAmount = parseFloat(document.getElementById("betAmount").value);
+            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
+
+            if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
+                betAmount = inputAmount;
+                balance -= betAmount;
+                cashedOut = false;
+                document.getElementById("placeBet").disabled = true;
+                document.getElementById("placeBet").classList.add('disabled');
+                document.getElementById("cashOut").disabled = false;
+                document.getElementById("result").textContent = "";
+                updateBalanceDisplay();
+            } 
+        }
+
+        function startGame() {
+            gameStarted = true;
+            multiplier = 1;
+            crashValue = generateCrashValue();
+
+            document.getElementById("multiplierBox").style.display = 'block';
+            document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`;
+
+            crashChart.data.labels = [];
+            crashChart.data.datasets[0].data = [];
+            crashChart.update();
+
+            gameInterval = setInterval(() => {
+                multiplier += Math.random() * 0.2;
+                crashChart.data.labels.push((crashChart.data.labels.length + 1).toString());
+                crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
+                crashChart.update();
+
+                document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x 🚀`;
+
+                if (autoWithdraw && multiplier >= autoWithdraw && !cashedOut) {
+                    cashOut();
+                }
+
+                if (multiplier >= crashValue) {
+                    clearInterval(gameInterval);
+                    document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
+                    document.getElementById("placeBet").disabled = false;
+                    document.getElementById("placeBet").classList.remove('disabled');
+                    document.getElementById("multiplierBox").style.display = 'none';
+                    gameStarted = false;
+                    startCountdown();
+                }
+            }, 100);
+        }
+
+        function generateCrashValue() {
+            const random = Math.random();
+            if (random < 0.5) return Math.random() * (4 - 1) + 1;
+            else if (random < 0.8) return Math.random() * (8 - 4) + 4;
+            else if (random < 0.9) return Math.random() * (12 - 9) + 9;
+            else if (random < 0.95) return Math.random() * (15 - 12) + 12;
+            else return Math.random() * (150 - 15) + 15;
+        }
+
+        function cashOut() {
+            if (betAmount && !cashedOut && gameStarted) {
+                clearInterval(gameInterval);
+                balance += betAmount * multiplier;
+                betAmount = 0;
+                cashedOut = true;
+                updateBalanceDisplay();
+                document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x`;
+                document.getElementById("placeBet").disabled = false;
+                document.getElementById("placeBet").classList.remove('disabled');
+                document.getElementById("cashOut").disabled = true;
+                document.getElementById("multiplierBox").style.display = 'none';
+                gameStarted = false;
+                startCountdown();
+            }
+        }
+
+        let countdownInterval;
+        function startCountdown() {
+            let timeRemaining = 10;
+            document.getElementById("timerLabel").textContent = timeRemaining;
+            document.getElementById("progressBar").style.width = '0%';
+
+            countdownInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById("timerLabel").textContent = timeRemaining;
+                document.getElementById("progressBar").style.width = `${(10 - timeRemaining) * 10}%`;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        window.onload = function() {
+            updateBalanceDisplay();
+            startCountdown();
+        };
     </script>
 </body>
 </html>
