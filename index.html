@@ -82,8 +82,18 @@
             width: 75%;
             padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+        }
+
+        .multiplier-box {
+            background-color: #247BA0;
+            color: #fff;
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
         }
 
         canvas {
@@ -113,8 +123,9 @@
             <p id="result"></p>
         </div>
 
-        <!-- Área do gráfico -->
+        <!-- Área do gráfico e valor do multiplicador -->
         <div class="game-area">
+            <div id="multiplierBox" class="multiplier-box">1.00x</div>
             <canvas id="crashChart"></canvas>
         </div>
     </div>
@@ -148,34 +159,17 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: 'Tempo (s)',
-                            color: '#fff'
-                        },
-                        ticks: {
-                            color: '#fff'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Multiplicador',
-                            color: '#fff'
-                        },
-                        ticks: {
-                            color: '#fff'
-                        }
-                    }
+                    x: { display: false },
+                    y: { display: false }
                 },
                 plugins: {
-                    legend: {
-                        labels: {
-                            color: '#fff'
-                        }
+                    legend: { display: false }
+                },
+                elements: {
+                    point: {
+                        radius: 5,
+                        backgroundColor: 'rgba(255, 255, 255, 0)',
+                        borderWidth: 0
                     }
                 }
             }
@@ -207,7 +201,7 @@
         function startGame() {
             let time = 0;
             multiplier = 1;
-            crashValue = Math.random() * 150 + 1; // Define novo valor de crash aleatório para aumentar a dificuldade
+            crashValue = Math.random() * 150 + 1; // Define novo valor de crash aleatório
 
             // Limpa os dados do gráfico anterior
             crashChart.data.labels = [];
@@ -216,10 +210,13 @@
 
             gameInterval = setInterval(() => {
                 time += 0.1;
-                multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória e mais lenta para aumentar a dificuldade
+                multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória
                 crashChart.data.labels.push(time.toFixed(1));
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
                 crashChart.update();
+
+                // Atualiza o valor do multiplicador na caixa
+                document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x 🚀`;
 
                 // Verifica retirada automática
                 if (autoWithdraw && multiplier >= autoWithdraw && !cashedOut) {
@@ -238,6 +235,12 @@
                     }
                     
                     gameStarted = false; // Reinicia o jogo
+                    gameInterval = null;
+
+                    // Reinicia o jogo após 10 segundos
+                    setTimeout(() => {
+                        if (!gameStarted) startGame();
+                    }, 10000);
                 }
             }, 100);
         }
