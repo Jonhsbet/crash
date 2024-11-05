@@ -120,8 +120,7 @@
             text-align: center;
             color: #fff;
             font-size: 1rem;
-            top: 50%; /* Centraliza verticalmente */
-            transform: translateY(-50%); /* Ajusta a posição para o centro */
+            top: -25px; /* Posiciona acima da barra */
         }
 
         canvas {
@@ -225,7 +224,6 @@
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
-                startGame(); // Inicia o jogo após fazer a aposta
             } 
         }
 
@@ -271,42 +269,53 @@
         function generateCrashValue() {
             const random = Math.random();
             if (random < 0.5) {
-                return Math.random() * (4 - 1) + 1; // Valor entre 1 e 4
+                return Math.random() * (4 - 1) + 1; // 50% de 1x a 4x
             } else if (random < 0.8) {
-                return Math.random() * (8 - 4) + 4; // Valor entre 4 e 8
+                return Math.random() * (8 - 4) + 4; // 30% de 4x a 8x
+            } else if (random < 0.9) {
+                return Math.random() * (12 - 9) + 9; // 10% de 9x a 12x
+            } else if (random < 0.95) {
+                return Math.random() * (15 - 12) + 12; // 5% de 12x a 15x
             } else {
-                return Math.random() * (20 - 8) + 8; // Valor entre 8 e 20
+                return Math.random() * (150 - 15) + 15; // 5% de 15x a 150x
             }
+        }
+
+        // Função para iniciar a contagem do tempo de 10 segundos
+        function startCountdown() {
+            let countdown = 10; // 10 segundos
+            const progressBar = document.getElementById("progressBar");
+            const timerLabel = document.getElementById("timerLabel");
+            progressBar.style.width = '100%'; // Reseta a barra de progresso
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                timerLabel.textContent = countdown; // Atualiza o timer
+                progressBar.style.width = `${(countdown / 10) * 100}%`; // Atualiza a largura da barra de progresso
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame(); // Inicia o jogo após 10 segundos
+                }
+            }, 1000); // Atualiza a cada segundo
         }
 
         function cashOut() {
             if (gameStarted && !cashedOut) {
                 cashedOut = true;
-                const winnings = betAmount * multiplier;
-                balance += winnings; // Adiciona os ganhos ao saldo
+                balance += betAmount * multiplier; // Calcula o saldo após retirada
                 updateBalanceDisplay();
-                document.getElementById("result").textContent = `Retirou R$${winnings.toFixed(2)}`;
-                clearInterval(gameInterval); // Para o jogo
+                document.getElementById("result").textContent = `Você retirou com ${multiplier.toFixed(2)}x!`;
+                document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
                 document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                 document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
-                document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
-                gameStarted = false; // Reseta o estado do jogo
-                startCountdown(); // Reinicia a contagem após o cash out
             }
         }
 
-        function startCountdown() {
-            let countdown = 10; // Tempo do contador
-            document.getElementById("timerLabel").textContent = countdown; // Exibe o tempo
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                document.getElementById("timerLabel").textContent = countdown; // Atualiza o contador
-
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                }
-            }, 1000);
-        }
+        // Inicia a contagem assim que a página carrega
+        window.onload = function() {
+            startCountdown();
+        };
     </script>
 </body>
 </html>
