@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo rash - JonhsBet</title>
+    <title>Jogo Crash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -260,6 +260,7 @@
                     document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
                     document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
                     gameStarted = false; // Reseta o estado do jogo
+                    startCountdown(); // Reinicia a contagem após o crash
                 }
             }, 100); // Atualiza o multiplicador a cada 100ms
         }
