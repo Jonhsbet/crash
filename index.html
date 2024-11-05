@@ -6,86 +6,117 @@
     <title>Jogo Crash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #222;
             color: #fff;
             margin: 0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .header {
-            width: 100%;
-            padding: 10px 20px;
-            background-color: #333;
+        .container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #4CAF50;
-            font-size: 1.5rem;
-        }
-
-        .header .site-name {
-            font-weight: bold;
-        }
-
-        .header .balance {
-            font-weight: bold;
-            color: #FFD700;
-        }
-
-        .game-container {
-            width: 80%;
-            max-width: 800px;
-            text-align: center;
-            margin-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background-color: #333;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .controls {
-            margin: 20px 0;
+            width: 25%;
+            background-color: #444;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
         }
 
-        .btn {
-            padding: 10px 20px;
+        .controls input, .controls button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
             font-size: 1rem;
-            cursor: pointer;
             border: none;
-            color: white;
-            background-color: #4CAF50;
-            margin: 5px;
+            border-radius: 8px;
+            color: #222;
+            outline: none;
         }
 
-        .btn:disabled {
-            background-color: #555;
+        .controls input {
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .controls button {
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .controls button:disabled {
+            background-color: #777;
             cursor: not-allowed;
         }
 
-        #result {
-            font-size: 1.5rem;
-            color: #FF4500;
+        .balance {
+            font-weight: bold;
+            color: #FFD700;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .game-area {
+            width: 75%;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         canvas {
+            width: 100%;
+            height: 100%;
             background-color: #333;
+            border-radius: 8px;
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #FF4500;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="site-name">JonhsBet</div>
-        <div class="balance" id="balance">Saldo: R$1000,00</div>
-    </div>
-
-    <div class="game-container">
-        <canvas id="crashChart" width="800" height="400"></canvas>
+    <div class="container">
+        <!-- Controle de apostas e saldo -->
         <div class="controls">
+            <div class="balance" id="balance">Saldo: R$1000,00</div>
             <input type="number" id="betAmount" placeholder="Valor da aposta" min="1">
-            <button class="btn" id="placeBet" onclick="placeBet()">Fazer Aposta</button>
-            <button class="btn" id="cashOut" onclick="cashOut()" disabled>Retirar</button>
+            <input type="number" id="autoWithdraw" placeholder="Retirada automática (Ex: 2x)" min="1">
+            <button id="placeBet" onclick="placeBet()">Fazer Aposta</button>
+            <button id="cashOut" onclick="cashOut()" disabled>Retirar</button>
+            <p id="result"></p>
         </div>
-        <p id="result"></p>
+
+        <!-- Área do gráfico -->
+        <div class="game-area">
+            <canvas id="crashChart"></canvas>
+        </div>
     </div>
 
     <script>
@@ -95,6 +126,7 @@
         let cashedOut = false;
         let balance = 1000; // Saldo inicial
         let crashValue = Math.random() * 200 + 1; // Valor aleatório de crash entre 1 e 200x
+        let autoWithdraw = null; // Valor de retirada automática
 
         // Configuração do gráfico
         const ctx = document.getElementById('crashChart').getContext('2d');
@@ -154,6 +186,8 @@
 
         function placeBet() {
             const inputAmount = parseFloat(document.getElementById("betAmount").value);
+            autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
+
             if (inputAmount && inputAmount > 0 && inputAmount <= balance) {
                 betAmount = inputAmount;
                 balance -= betAmount;
@@ -184,6 +218,11 @@
                 crashChart.data.labels.push(time.toFixed(1));
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
                 crashChart.update();
+
+                // Verifica retirada automática
+                if (autoWithdraw && multiplier >= autoWithdraw && !cashedOut) {
+                    cashOut();
+                }
 
                 if (multiplier >= crashValue) {
                     clearInterval(gameInterval);
