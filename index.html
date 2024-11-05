@@ -61,13 +61,13 @@
         }
 
         .controls button {
-            background-color: #4CAF50;
+            background-color: #4CAF50; /* Verde por padrão */
             color: #fff;
             cursor: pointer;
         }
 
-        .controls button:disabled {
-            background-color: #777;
+        .controls button.disabled {
+            background-color: #777; /* Cinza quando desabilitado */
             cursor: not-allowed;
         }
 
@@ -210,7 +210,8 @@
                     balance -= betAmount;
                     cashedOut = false;
                     gameStarted = true;
-                    document.getElementById("placeBet").disabled = true; // Desabilita o botão de aposta
+                    document.getElementById("placeBet").disabled = true; // Desabilita o botão de aposta e muda a cor
+                    document.getElementById("placeBet").classList.add('disabled');
                     document.getElementById("cashOut").disabled = false;
                     document.getElementById("result").textContent = "";
                     updateBalanceDisplay();
@@ -219,8 +220,6 @@
                 } else {
                     alert("Insira um valor de aposta válido dentro do saldo disponível.");
                 }
-            } else {
-                alert("Você não pode fazer uma nova aposta enquanto o jogo está em andamento.");
             }
         }
 
@@ -258,6 +257,7 @@
                     clearInterval(progressInterval); // Para a barra de progresso
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
                     document.getElementById("placeBet").disabled = false; // Permite novas apostas
+                    document.getElementById("placeBet").classList.remove('disabled');
                     document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
 
                     if (!cashedOut && gameStarted) {
@@ -268,10 +268,12 @@
                     gameStarted = false; // Reinicia o jogo
                     gameInterval = null;
 
+                    // Oculta o multiplicador após o jogo
+                    document.getElementById("multiplierBox").style.display = 'none';
+
                     // Reinicia o jogo após 10 segundos
                     setTimeout(() => {
                         if (!gameStarted) {
-                            document.getElementById("multiplierBox").style.display = 'none'; // Oculta o multiplicador
                             startGame();
                         }
                     }, 10000);
@@ -286,6 +288,7 @@
             document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x e ganhou R$${winAmount.toFixed(2)}`;
             updateBalanceDisplay();
             document.getElementById("placeBet").disabled = false; // Permite novas apostas
+            document.getElementById("placeBet").classList.remove('disabled'); // Restaura a cor original
             document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
         }
 
