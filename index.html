@@ -3,36 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Crash</title>
+    <title>Jogo Crash - JonhsBet</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             background-color: #222;
             color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            flex-direction: column;
         }
 
-        h1 {
+        .header {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             color: #4CAF50;
+            font-size: 1.5rem;
+            position: fixed;
+            top: 0;
+        }
+
+        .header .site-name {
+            font-weight: bold;
+        }
+
+        .header .balance {
+            font-weight: bold;
+            color: #FFD700;
         }
 
         .game-container {
+            margin-top: 80px;
+            width: 80%;
+            max-width: 800px;
             text-align: center;
-            margin: 20px;
         }
 
-        #multiplier {
-            font-size: 2rem;
+        .controls {
             margin: 20px 0;
-            color: #00ff00;
-        }
-
-        .input-group {
-            margin: 10px 0;
         }
 
         .btn {
@@ -49,109 +66,129 @@
             background-color: #555;
             cursor: not-allowed;
         }
+
+        #result {
+            font-size: 1.5rem;
+            color: #FF4500;
+        }
     </style>
 </head>
 <body>
-    <h1>Jogo Crash</h1>
-    <div class="game-container">
-        <div class="input-group">
-            <label for="betAmount">Aposta: R$</label>
-            <input type="number" id="betAmount" placeholder="Valor da aposta" min="1">
-        </div>
-        <button class="btn" id="placeBet" onclick="placeBet()">Fazer Aposta</button>
-        <button class="btn" id="cashOut" onclick="cashOut()" disabled>Retirar</button>
+    <div class="header">
+        <div class="site-name">JonhsBet</div>
+        <div class="balance" id="balance">Saldo: R$1000,00</div>
+    </div>
 
-        <p id="countdown">Tempo para iniciar: 20s</p>
-        <p id="multiplier">1.00x</p>
+    <div class="game-container">
+        <canvas id="crashChart" width="800" height="400"></canvas>
+        <div class="controls">
+            <input type="number" id="betAmount" placeholder="Valor da aposta" min="1">
+            <button class="btn" id="placeBet" onclick="placeBet()">Fazer Aposta</button>
+            <button class="btn" id="cashOut" onclick="cashOut()" disabled>Retirar</button>
+        </div>
         <p id="result"></p>
     </div>
 
     <script>
-        let countdown = 20;
         let multiplier = 1;
         let gameInterval;
-        let countdownInterval;
-        let gameStarted = false;
-        let betPlaced = false;
         let betAmount = 0;
         let cashedOut = false;
+        let balance = 1000; // Saldo inicial
+        let crashValue = Math.random() * 200 + 1; // Valor aleatório de crash entre 1 e 200x
 
-        function startCountdown() {
-            countdownInterval = setInterval(() => {
-                countdown--;
-                document.getElementById("countdown").textContent = `Tempo para iniciar: ${countdown}s`;
-                
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    startGame();
+        // Configuração do gráfico
+        const ctx = document.getElementById('crashChart').getContext('2d');
+        const crashChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Multiplicador',
+                    data: [],
+                    borderColor: '#00ff00',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: "#fff"
+                        }
+                    }
                 }
-            }, 1000);
+            }
+        });
+
+        function updateBalanceDisplay() {
+            document.getElementById("balance").textContent = `Saldo: R$${balance.toFixed(2)}`;
         }
 
         function placeBet() {
-            const inputAmount = document.getElementById("betAmount").value;
-            if (inputAmount && inputAmount > 0) {
-                betAmount = parseFloat(inputAmount);
-                betPlaced = true;
+            const inputAmount = parseFloat(document.getElementById("betAmount").value);
+            if (inputAmount && inputAmount > 0 && inputAmount <= balance) {
+                betAmount = inputAmount;
+                balance -= betAmount;
+                cashedOut = false;
                 document.getElementById("placeBet").disabled = true;
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
+                updateBalanceDisplay();
+                startGame();
             } else {
-                alert("Por favor, insira um valor válido para a aposta.");
+                alert("Insira um valor de aposta válido dentro do saldo disponível.");
             }
         }
 
         function startGame() {
-            if (!betPlaced) {
-                document.getElementById("result").textContent = "Jogo começou, mas você não apostou.";
-                return;
-            }
-
-            gameStarted = true;
-            cashedOut = false;
-            document.getElementById("countdown").textContent = "Jogo em andamento...";
+            let time = 0;
             multiplier = 1;
+            crashValue = Math.random() * 200 + 1; // Define novo valor de crash aleatório
+
+            // Limpa os dados do gráfico anterior
+            crashChart.data.labels = [];
+            crashChart.data.datasets[0].data = [];
+            crashChart.update();
 
             gameInterval = setInterval(() => {
-                multiplier += 0.1;  // Aumenta o multiplicador mais devagar para simular o crescimento até 200x
-                document.getElementById("multiplier").textContent = `${multiplier.toFixed(2)}x`;
+                time += 0.1;
+                multiplier += 0.1;
+                crashChart.data.labels.push(time.toFixed(1));
+                crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
+                crashChart.update();
 
-                // Simulação de "crash" aleatório que se torna menos frequente com o aumento do multiplicador
-                if (Math.random() < 0.001 * multiplier || multiplier >= 200) {
-                    endGame();
+                if (multiplier >= crashValue) {
+                    clearInterval(gameInterval);
+                    document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
+                    document.getElementById("placeBet").disabled = false;
+                    document.getElementById("cashOut").disabled = true;
+
+                    if (!cashedOut) {
+                        balance -= betAmount;
+                        updateBalanceDisplay();
+                    }
                 }
             }, 100);
         }
 
         function cashOut() {
-            if (gameStarted && !cashedOut) {
-                cashedOut = true;
-                clearInterval(gameInterval);
-                const winnings = (betAmount * multiplier).toFixed(2);
-                document.getElementById("result").textContent = `Você retirou e ganhou R$${winnings}!`;
-                resetGame();
-            }
-        }
-
-        function endGame() {
             clearInterval(gameInterval);
-            document.getElementById("result").textContent = cashedOut
-                ? ""
-                : `O jogo travou em ${multiplier.toFixed(2)}x! Você perdeu sua aposta.`;
-            resetGame();
-        }
-
-        function resetGame() {
+            cashedOut = true;
+            const winAmount = betAmount * multiplier;
+            balance += winAmount;
+            document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x e ganhou R$${winAmount.toFixed(2)}`;
+            updateBalanceDisplay();
             document.getElementById("placeBet").disabled = false;
             document.getElementById("cashOut").disabled = true;
-            betPlaced = false;
-            gameStarted = false;
-            countdown = 20;
-            document.getElementById("countdown").textContent = `Tempo para iniciar: ${countdown}s`;
-            startCountdown();
         }
-
-        startCountdown();
     </script>
 </body>
 </html>
