@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo rash - JonhsBet</title>
+    <title>Jogo Crash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -268,10 +268,12 @@
 
         function generateCrashValue() {
             const random = Math.random();
-            if (random < 0.7) {
-                return Math.random() * (8 - 1) + 1; // 70% de 1x a 8x
+            if (random < 0.5) {
+                return Math.random() * (4 - 1) + 1; // 50% de 1x a 4x
+            } else if (random < 0.8) {
+                return Math.random() * (8 - 4) + 4; // 30% de 4x a 8x
             } else if (random < 0.9) {
-                return Math.random() * (12 - 9) + 9; // 20% de 9x a 12x
+                return Math.random() * (12 - 9) + 9; // 10% de 9x a 12x
             } else if (random < 0.95) {
                 return Math.random() * (15 - 12) + 12; // 5% de 12x a 15x
             } else {
