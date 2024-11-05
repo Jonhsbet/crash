@@ -270,12 +270,10 @@
                 if (multiplier >= crashValue) {
                     clearInterval(gameInterval);
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
-                    document.getElementById("placeBet").disabled = false;
-                    document.getElementById("placeBet").classList.remove('disabled');
-                    document.getElementById("multiplierBox").style.display = 'none';
-                    gameStarted = false;
+                    document.getElementById("cashOut").disabled = true;
+                    updateBalanceDisplay();
                 }
-            }, 1000);
+            }, 50);
         }
 
         function cashOut() {
