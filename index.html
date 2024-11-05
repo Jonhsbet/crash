@@ -261,10 +261,10 @@
                     document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
 
                     if (!cashedOut && gameStarted) {
-                        balance -= betAmount; // Reduz o saldo em caso de crash
+                        balance -= betAmount; // Reduz o saldo se não retirou
                         updateBalanceDisplay();
                     }
-                    
+
                     gameStarted = false; // Reinicia o jogo
                     gameInterval = null;
 
@@ -273,9 +273,7 @@
 
                     // Reinicia o jogo após 10 segundos
                     setTimeout(() => {
-                        if (!gameStarted) {
-                            startGame();
-                        }
+                        if (!gameStarted) startGame();
                     }, 10000);
                 }
             }, 100);
