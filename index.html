@@ -94,6 +94,24 @@
             border-radius: 8px;
             margin-bottom: 10px;
             text-align: center;
+            display: none; /* Oculta inicialmente */
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #555;
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            width: 0;
+            transition: width 0.1s linear;
         }
 
         canvas {
@@ -126,6 +144,9 @@
         <!-- Área do gráfico e valor do multiplicador -->
         <div class="game-area">
             <div id="multiplierBox" class="multiplier-box">1.00x</div>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
             <canvas id="crashChart"></canvas>
         </div>
     </div>
@@ -192,6 +213,7 @@
                 document.getElementById("cashOut").disabled = false;
                 document.getElementById("result").textContent = "";
                 updateBalanceDisplay();
+                document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
                 if (!gameInterval) startGame();
             } else {
                 alert("Insira um valor de aposta válido dentro do saldo disponível.");
@@ -208,8 +230,12 @@
             crashChart.data.datasets[0].data = [];
             crashChart.update();
 
-            gameInterval = setInterval(() => {
+            // Reinicia a barra de progresso
+            document.getElementById("progressBar").style.width = '0%';
+            let progressInterval = setInterval(() => {
                 time += 0.1;
+                document.getElementById("progressBar").style.width = `${(time / 10) * 100}%`; // Atualiza a largura da barra
+
                 multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória
                 crashChart.data.labels.push(time.toFixed(1));
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
@@ -225,12 +251,13 @@
 
                 if (multiplier >= crashValue) {
                     clearInterval(gameInterval);
+                    clearInterval(progressInterval); // Para a barra de progresso
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
-                    document.getElementById("placeBet").disabled = false;
-                    document.getElementById("cashOut").disabled = true;
+                    document.getElementById("placeBet").disabled = false; // Permite novas apostas
+                    document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
 
                     if (!cashedOut && gameStarted) {
-                        balance -= betAmount;
+                        balance -= betAmount; // Reduz o saldo em caso de crash
                         updateBalanceDisplay();
                     }
                     
@@ -239,10 +266,13 @@
 
                     // Reinicia o jogo após 10 segundos
                     setTimeout(() => {
-                        if (!gameStarted) startGame();
+                        if (!gameStarted) {
+                            document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador ao reiniciar
+                            startGame(); // Reinicia o jogo
+                        }
                     }, 10000);
                 }
-            }, 100);
+            }, 100); // Atualiza a cada 100ms
         }
 
         function cashOut() {
@@ -251,8 +281,8 @@
             balance += winAmount;
             document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x e ganhou R$${winAmount.toFixed(2)}`;
             updateBalanceDisplay();
-            document.getElementById("placeBet").disabled = false;
-            document.getElementById("cashOut").disabled = true;
+            document.getElementById("placeBet").disabled = false; // Permite novas apostas
+            document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
         }
 
         // Inicia automaticamente o jogo após 10 segundos, caso não haja aposta
