@@ -12,11 +12,8 @@
             color: #fff;
             margin: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
             flex-direction: column;
+            align-items: center;
         }
 
         .header {
@@ -28,8 +25,6 @@
             align-items: center;
             color: #4CAF50;
             font-size: 1.5rem;
-            position: fixed;
-            top: 0;
         }
 
         .header .site-name {
@@ -42,10 +37,10 @@
         }
 
         .game-container {
-            margin-top: 80px;
             width: 80%;
             max-width: 800px;
             text-align: center;
+            margin-top: 20px;
         }
 
         .controls {
@@ -70,6 +65,10 @@
         #result {
             font-size: 1.5rem;
             color: #FF4500;
+        }
+
+        canvas {
+            background-color: #333;
         }
     </style>
 </head>
@@ -107,7 +106,8 @@
                     label: 'Multiplicador',
                     data: [],
                     borderColor: '#00ff00',
-                    fill: false,
+                    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                    fill: true,
                     tension: 0.1
                 }]
             },
@@ -116,12 +116,32 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        display: false
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Tempo (s)',
+                            color: '#fff'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
                     },
                     y: {
                         beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Multiplicador',
+                            color: '#fff'
+                        },
                         ticks: {
-                            color: "#fff"
+                            color: '#fff'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#fff'
                         }
                     }
                 }
