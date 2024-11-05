@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo rash - JonhsBet</title>
+    <title>Jogo Crash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -266,8 +266,8 @@
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
                     document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                     document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
-                    gameStarted = false; // Reseta o estado do jogo
                     document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
+                    gameStarted = false; // Reseta o estado do jogo
                 }
             }, 100); // Atualiza o multiplicador a cada 100ms
         }
@@ -278,11 +278,10 @@
                 balance += betAmount * multiplier; // Calcula o saldo após retirada
                 updateBalanceDisplay();
                 document.getElementById("result").textContent = `Você retirou com ${multiplier.toFixed(2)}x!`;
-                clearInterval(gameInterval);
+                document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
                 document.getElementById("placeBet").disabled = false; // Habilita novas apostas
                 document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
-                document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
-                gameStarted = false; // Reseta o estado do jogo
+                // Não esconde o multiplicador para continuar aumentando
             }
         }
     </script>
