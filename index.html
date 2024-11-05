@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Crash - JonhsBet</title>
+    <title>Jogo rash - JonhsBet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -204,43 +204,52 @@
             const inputAmount = parseFloat(document.getElementById("betAmount").value);
             autoWithdraw = parseFloat(document.getElementById("autoWithdraw").value) || null;
 
-            if (!gameStarted) { // Permite nova aposta somente se o jogo não estiver em andamento
-                if (inputAmount && inputAmount > 0 && inputAmount <= balance) {
-                    betAmount = inputAmount;
-                    balance -= betAmount;
-                    cashedOut = false;
-                    gameStarted = true;
-                    document.getElementById("placeBet").disabled = true; // Desabilita o botão de aposta e muda a cor
-                    document.getElementById("placeBet").classList.add('disabled');
-                    document.getElementById("cashOut").disabled = false;
-                    document.getElementById("result").textContent = "";
-                    updateBalanceDisplay();
-                    document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
-                    startGame(); // Inicia o jogo
-                } else {
-                    alert("Insira um valor de aposta válido dentro do saldo disponível.");
-                }
+            if (inputAmount && inputAmount > 0 && inputAmount <= balance && !gameStarted) {
+                betAmount = inputAmount;
+                balance -= betAmount;
+                cashedOut = false;
+                document.getElementById("placeBet").disabled = true;
+                document.getElementById("placeBet").classList.add('disabled'); // Adiciona classe para mudar a cor
+                document.getElementById("cashOut").disabled = false;
+                document.getElementById("result").textContent = "";
+                updateBalanceDisplay();
+                startCountdown();
+            } else {
+                alert("Insira um valor de aposta válido dentro do saldo disponível.");
             }
         }
 
+        function startCountdown() {
+            let countdownTime = 10; // Contagem regressiva de 10 segundos
+            const progressBar = document.getElementById("progressBar");
+            progressBar.style.width = '0%'; // Reseta a largura da barra
+
+            const countdownInterval = setInterval(() => {
+                countdownTime--;
+                progressBar.style.width = ((10 - countdownTime) * 10) + '%'; // Atualiza a barra de progresso
+
+                if (countdownTime <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame(); // Inicia o jogo após a contagem
+                }
+            }, 1000);
+        }
+
         function startGame() {
-            let time = 0;
+            gameStarted = true;
             multiplier = 1;
             crashValue = Math.random() * 150 + 1; // Define novo valor de crash aleatório
+            document.getElementById("multiplierBox").style.display = 'block'; // Mostra o multiplicador
+            document.getElementById("multiplierBox").textContent = `${multiplier.toFixed(2)}x`;
 
             // Limpa os dados do gráfico anterior
             crashChart.data.labels = [];
             crashChart.data.datasets[0].data = [];
             crashChart.update();
 
-            // Reinicia a barra de progresso
-            document.getElementById("progressBar").style.width = '0%';
-            let progressInterval = setInterval(() => {
-                time += 0.1;
-                document.getElementById("progressBar").style.width = `${(time / 10) * 100}%`; // Atualiza a largura da barra
-
+            gameInterval = setInterval(() => {
                 multiplier += Math.random() * 0.2; // Multiplicador aumenta de forma aleatória
-                crashChart.data.labels.push(time.toFixed(1));
+                crashChart.data.labels.push((crashChart.data.labels.length + 1).toString());
                 crashChart.data.datasets[0].data.push(multiplier.toFixed(2));
                 crashChart.update();
 
@@ -254,48 +263,28 @@
 
                 if (multiplier >= crashValue) {
                     clearInterval(gameInterval);
-                    clearInterval(progressInterval); // Para a barra de progresso
                     document.getElementById("result").textContent = `Crashed em ${multiplier.toFixed(2)}x`;
-                    document.getElementById("placeBet").disabled = false; // Permite novas apostas
-                    document.getElementById("placeBet").classList.remove('disabled');
-                    document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
-
-                    if (!cashedOut && gameStarted) {
-                        balance -= betAmount; // Reduz o saldo se não retirou
-                        updateBalanceDisplay();
-                    }
-
-                    gameStarted = false; // Reinicia o jogo
-                    gameInterval = null;
-
-                    // Oculta o multiplicador após o jogo
-                    document.getElementById("multiplierBox").style.display = 'none';
-
-                    // Reinicia o jogo após 10 segundos
-                    setTimeout(() => {
-                        if (!gameStarted) startGame();
-                    }, 10000);
+                    document.getElementById("placeBet").disabled = false; // Habilita novas apostas
+                    document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
+                    gameStarted = false; // Reseta o estado do jogo
+                    document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
                 }
-            }, 100);
+            }, 100); // Atualiza o multiplicador a cada 100ms
         }
 
         function cashOut() {
-            cashedOut = true;
-            const winAmount = betAmount * multiplier;
-            balance += winAmount;
-            document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x e ganhou R$${winAmount.toFixed(2)}`;
-            updateBalanceDisplay();
-            document.getElementById("placeBet").disabled = false; // Permite novas apostas
-            document.getElementById("placeBet").classList.remove('disabled'); // Restaura a cor original
-            document.getElementById("cashOut").disabled = true; // Desabilita o botão de retirada
-        }
-
-        // Inicia automaticamente o jogo após 10 segundos, caso não haja aposta
-        setTimeout(() => {
-            if (!gameStarted) {
-                startGame();
+            if (gameStarted && !cashedOut) {
+                cashedOut = true;
+                balance += betAmount * multiplier; // Calcula o saldo após retirada
+                updateBalanceDisplay();
+                document.getElementById("result").textContent = `Você retirou com ${multiplier.toFixed(2)}x!`;
+                clearInterval(gameInterval);
+                document.getElementById("placeBet").disabled = false; // Habilita novas apostas
+                document.getElementById("placeBet").classList.remove('disabled'); // Remove a classe que desabilita
+                document.getElementById("multiplierBox").style.display = 'none'; // Esconde o multiplicador
+                gameStarted = false; // Reseta o estado do jogo
             }
-        }, 10000);
+        }
     </script>
 </body>
 </html>
