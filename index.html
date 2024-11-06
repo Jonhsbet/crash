@@ -272,22 +272,22 @@
             else return Math.random() * (150 - 15) + 15;
         }
 
-        function cashOut() {
-            if (betAmount && !cashedOut && gameStarted) {
-                clearInterval(gameInterval);
-                balance += betAmount * multiplier;
-                betAmount = 0;
-                cashedOut = true;
-                updateBalanceDisplay();
-                document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x`;
-                document.getElementById("placeBet").disabled = false;
-                document.getElementById("placeBet").classList.remove('disabled');
-                document.getElementById("cashOut").disabled = true;
-                document.getElementById("multiplierBox").style.display = 'none';
-                gameStarted = false;
-                startCountdown();
-            }
-        }
+       function cashOut() {
+    if (betAmount && !cashedOut && gameStarted) {
+        clearInterval(gameInterval); // Apenas para a contagem do multiplicador
+        balance += betAmount * multiplier; // Calcula o valor da retirada
+        betAmount = 0;
+        cashedOut = true;
+        updateBalanceDisplay();
+        document.getElementById("result").textContent = `Você retirou em ${multiplier.toFixed(2)}x`;
+        document.getElementById("placeBet").disabled = false;
+        document.getElementById("placeBet").classList.remove('disabled');
+        document.getElementById("cashOut").disabled = true;
+        document.getElementById("multiplierBox").style.display = 'none';
+        gameStarted = false; // Jogo não é reiniciado aqui
+    }
+}
+
 
         let countdownInterval;
         function startCountdown() {
